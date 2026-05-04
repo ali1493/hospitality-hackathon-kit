@@ -1,0 +1,76 @@
+table,field,type,description,example,nullable,is_pk,is_fk,fk_target,notes
+guests,guest_id,string,Stable unique identifier for the guest within a property,GST-008127,false,true,false,,Cross-property dedup is a Track 2 challenge angle
+guests,first_name,string,Given name as captured at booking,Sarah,false,false,false,,May vary across stays for same person
+guests,last_name,string,Family name as captured at booking,Wilson,false,false,false,,May vary across stays for same person
+guests,email,string,Primary contact email,sarah.wilson@example.com,true,false,false,,May be OTA-obfuscated alias — about 15% are
+guests,phone,string,Primary contact phone,+1-250-555-0142,true,false,false,,Five different format variants in seed data
+guests,tier,enum,Loyalty tier,silver,false,false,false,,Values: standard/silver/gold/platinum
+guests,lifetime_stay_count,int,Total stays at this property,4,false,false,false,,Computed from stays
+guests,lifetime_spend,decimal,Total spend in CAD,2847.50,false,false,false,,Computed from stays + fb_receipts + spa_appointments
+guests,marketing_opt_in,bool,CASL marketing consent flag — top-level only,true,false,false,false,,~50 seeded as false. Check consent_scope_csv for granular scope.
+guests,consent_scope_csv,string,Comma-separated consent scopes,"transactional,marketing",false,false,false,,Values: transactional/marketing/win_back/research. Transactional does not imply marketing.
+guests,consent_updated_at,date,Last consent change timestamp,2025-11-12,false,false,false,,
+guests,identity_preference,enum,Whether guest wants records merged with potentially-related profiles,allow_merge,false,false,false,,Values: allow_merge/keep_separate/unknown. keep_separate overrides match confidence.
+guests,churn_risk_seed,bool,Seeded ground truth flag for at-risk high-LTV guests,true,false,false,false,,Used for self-scoring. Not available at inference time.
+stays,stay_id,string,Stable unique identifier for the realized stay,STY-008441,false,true,false,,
+stays,guest_id,string,Guest who stayed,GST-008127,false,false,true,guests.guest_id,
+stays,booking_id,string,Originating booking — joins to Track 1 bookings,BK-2026-04-013429,false,false,false,,Cross-track join key
+stays,property_id,string,Property,PROP-001,false,false,false,,
+stays,checkin_at,date,Actual check-in,2026-05-15T15:14:00,false,false,false,,
+stays,checkout_at,date,Actual check-out,2026-05-17T10:32:00,false,false,false,,
+stays,stay_total,decimal,Total stay value including F&B and spa charges,612.40,false,false,false,,
+stays,was_returning_guest,bool,Guest had a prior stay at this property,true,false,false,false,,Pre-computed convenience flag
+fb_receipts,receipt_id,string,Stable unique identifier,FB-2026-05-16-029112,false,true,false,,
+fb_receipts,guest_id,string,Guest charged,GST-008127,false,false,true,guests.guest_id,
+fb_receipts,stay_id,string,Associated stay,STY-008441,false,false,true,stays.stay_id,
+fb_receipts,outlet,enum,F&B outlet,restaurant,false,false,false,,Values: restaurant/minibar/banquet/room_service/cafe
+fb_receipts,receipt_at,date,Transaction time,2026-05-16T19:42:00,false,false,false,,
+fb_receipts,subtotal,decimal,Pre-tax subtotal CAD,84.50,false,false,false,,
+fb_receipts,items_json,string,JSON array of line items,"[{""item"":""salmon"",""qty"":1}]",false,false,false,,
+fb_receipts,allergen_flags,string,Comma-separated allergens detected on items,gluten,true,false,false,,
+spa_appointments,appointment_id,string,Stable unique identifier,SPA-2026-05-16-001122,false,true,false,,
+spa_appointments,guest_id,string,Guest receiving treatment,GST-008127,false,false,true,guests.guest_id,
+spa_appointments,stay_id,string,In-house stay at time of appointment (if hotel guest),STY-008441,true,false,true,stays.stay_id,Null for day-visit spa clients not staying overnight
+spa_appointments,therapist_id,string,Assigned therapist,THR-004,false,false,false,,
+spa_appointments,treatment_type,enum,Treatment category,deep_tissue_massage,false,false,false,,Values: deep_tissue_massage/swedish_massage/hot_stone/facial/body_wrap/reflexology/couples/consultation
+spa_appointments,appointment_at,date,Scheduled appointment time,2026-05-16T10:00:00,false,false,false,,
+spa_appointments,duration_minutes,int,Booked duration,90,false,false,false,,
+spa_appointments,product_notes,string,Freeform product preferences and notes from therapist,Client prefers unscented oils.,true,false,false,,Informal therapist shorthand — needs parsing
+spa_appointments,product_sensitivity_flags,string,Comma-separated documented product sensitivities,lavender|nut_oils,true,false,false,,SAFETY CONSTRAINT — not a preference. If a treatment product matches any flag in this field the appointment must be flagged as a hard stop before confirmation. Seeded with ~15 cases where sensitivity was not carried forward to rebooking.
+spa_appointments,status,enum,Appointment state,completed,false,false,false,,Values: booked/checked_in/completed/no_show/cancelled
+spa_appointments,therapist_notes,string,Post-treatment therapist notes,Guest requested firmer pressure throughout.,true,false,false,,
+spa_appointments,flags,string,Quality flags pipe-separated,DATA_QUALITY_ISSUE: sensitivity_missed,true,false,false,,Tagged where sensitivity was not carried forward to rebooking
+surveys,survey_id,string,Stable unique identifier,SV-2026-05-20-001293,false,true,false,,
+surveys,guest_id,string,Guest surveyed,GST-008127,false,false,true,guests.guest_id,
+surveys,stay_id,string,Stay being surveyed,STY-008441,false,false,true,stays.stay_id,
+surveys,sent_at,date,When the survey was sent,2026-05-20T08:00:00,false,false,false,,Typically 3 days post-checkout
+surveys,responded_at,date,When the guest responded,2026-05-22T14:18:00,true,false,false,,Null if no response
+surveys,nps_score,int,NPS 0-10,9,true,false,false,,Null if no response
+surveys,satisfaction_overall,int,Overall CSAT 1-5,5,true,false,false,,
+surveys,satisfaction_room,int,Room CSAT 1-5,5,true,false,false,,
+surveys,satisfaction_service,int,Service CSAT 1-5,5,true,false,false,,
+surveys,satisfaction_fb,int,F&B CSAT 1-5,4,true,false,false,,
+surveys,satisfaction_spa,int,Spa CSAT 1-5,5,true,false,false,,Null if guest did not visit spa
+surveys,comment_text,string,Free-text comment,Loved the spa team — please thank them!,true,false,false,,Mixed quality — paragraphs to emoji to null
+surveys,notes,string,Internal flags pipe-separated,RED_FLAG_HIGH_NPS_NO_FOLLOWUP,true,false,false,,Used for ground truth
+reviews,review_id,string,Stable unique identifier,RV-google-2026-05-25-7723,false,true,false,,
+reviews,guest_id,string,Guest who left review (if matched),GST-008127,true,false,true,guests.guest_id,Null if not yet matched to a guest record
+reviews,stay_id,string,Associated stay,STY-008441,true,false,true,stays.stay_id,Null if not yet matched
+reviews,platform,enum,Source platform,google,false,false,false,,Values: google/tripadvisor/booking_com/yelp
+reviews,posted_at,date,When the review was posted,2026-05-25T09:14:00,false,false,false,,
+reviews,rating_stars,int,Rating in source platform units,5,false,false,false,,
+reviews,rating_max,int,Maximum for platform (Booking.com is /10),5,false,false,false,,
+reviews,review_text,string,Free-text review,The spa was exceptional. Check-in was slow.,false,false,false,,
+reviews,theme_tags,string,Pre-computed theme tags pipe-separated,spa_positive|check_in_slow,true,false,false,,May include OPS_LINKED prefix for cross-track ground truth
+reviews,response_status,enum,Operator response state,unanswered,false,false,false,,Values: unanswered/draft/sent
+reviews,responded_at,date,When operator responded,,true,false,false,,
+reviews,response_text,string,Operator response text,,true,false,false,,
+post_stay_events,event_id,string,Stable unique identifier,PSE-2026-05-22-018844,false,true,false,,
+post_stay_events,guest_id,string,Guest,GST-008127,false,false,true,guests.guest_id,
+post_stay_events,stay_id,string,Associated stay,STY-008441,false,false,true,stays.stay_id,
+post_stay_events,event_type,enum,Event type,email_sent,false,false,false,,Values: email_sent/email_opened/email_clicked/winback_sent/winback_redeemed/rebooked/unsubscribed
+post_stay_events,occurred_at,date,When event occurred,2026-05-22T10:00:00,false,false,false,,
+post_stay_events,campaign_id,string,Campaign identifier,CAMP-Q2-2026-RETURN,true,false,false,,
+post_stay_events,clicked,bool,Whether event involved a click,true,false,false,false,,
+post_stay_events,converted,bool,Whether event led to a re-booking,false,false,false,false,,
+post_stay_events,conversion_booking_id,string,Resulting booking if converted,,true,false,false,,Joins to Track 1 bookings

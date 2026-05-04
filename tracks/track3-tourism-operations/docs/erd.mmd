@@ -1,0 +1,109 @@
+erDiagram
+    TOUR_OPERATORS ||--o{ VESSELS : "operator_id"
+    TOUR_OPERATORS ||--o{ TOUR_DEPARTURES : "operator_id"
+    TOUR_OPERATORS ||--o{ GUIDE_SHIFTS : "operator_id"
+
+    VESSELS ||--o{ TOUR_DEPARTURES : "vessel_id"
+    VESSELS ||--o{ EQUIPMENT_INVENTORY : "vessel_id"
+    VESSELS ||--o{ GUIDE_SHIFTS : "vessel_id"
+
+    TOUR_DEPARTURES ||--o{ TOUR_BOOKINGS : "departure_id"
+    TOUR_DEPARTURES ||--o| WEATHER_MARINE : "departure_date"
+
+    TOUR_BOOKINGS ||--o| CROSS_DATASET_GROUNDTRUTH : "tour_booking_id"
+
+    TOUR_OPERATORS {
+        string operator_id PK
+        string operator_name
+        string home_port
+        int total_vessels
+        int total_guides
+        string booking_platform
+        bool viator_distributor
+    }
+
+    VESSELS {
+        string vessel_id PK
+        string operator_id FK
+        string vessel_name
+        enum vessel_type
+        int passenger_capacity
+        enum certification_class
+        bool covered_seating
+        date last_service_date
+        date next_service_due
+    }
+
+    TOUR_DEPARTURES {
+        string departure_id PK
+        string operator_id FK
+        string vessel_id FK
+        enum tour_type
+        date scheduled_at
+        date actual_departure_at
+        int seats_available
+        int seats_booked
+        bool weather_cancel_flag
+        enum advisory_level
+        string flags
+    }
+
+    TOUR_BOOKINGS {
+        string booking_id PK
+        string departure_id FK
+        string viator_booking_ref
+        string guest_first_name
+        string guest_last_name
+        string guest_email
+        int party_size
+        enum booking_channel
+        int lead_time_days
+        decimal price_per_person
+        bool no_show_flag
+        string rebooking_id
+        string no_show_risk_seed
+    }
+
+    GUIDE_SHIFTS {
+        string shift_id PK
+        string operator_id FK
+        string vessel_id FK
+        string guide_id
+        enum certification_type
+        date scheduled_start
+        date actual_start
+        date scheduled_end
+        date actual_end
+        bool no_show_flag
+        string flags
+    }
+
+    EQUIPMENT_INVENTORY {
+        string inspection_id PK
+        string vessel_id FK
+        enum safety_gear_type
+        date inspection_date
+        bool passed
+        date next_service_due
+        string flags
+    }
+
+    WEATHER_MARINE {
+        date observation_date PK
+        decimal swell_height_m
+        decimal wind_speed_knts
+        decimal visibility_km
+        enum sea_state
+        enum advisory_level
+        string advisory_area
+    }
+
+    CROSS_DATASET_GROUNDTRUTH {
+        string pair_id PK
+        string tour_booking_id FK
+        string hotel_stay_id
+        bool true_match
+        decimal name_similarity_score
+        int date_proximity_days
+        string match_reason
+    }

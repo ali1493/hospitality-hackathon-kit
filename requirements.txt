@@ -1,0 +1,40 @@
+# BuildersVault Hospitality Hackathon — Python dependencies
+# Install: pip install -r requirements.txt
+
+# Core data
+Faker==25.0.0
+pandas==2.2.2
+numpy==1.26.4
+pyarrow==16.1.0
+duckdb==0.10.2
+
+# Visualization and notebooks
+matplotlib==3.9.0
+plotly==5.21.0
+jupyterlab==4.1.8
+ipykernel==6.29.4
+streamlit==1.34.0
+
+# Track 1 — Operations Workstation
+# Demand forecasting
+prophet==1.1.5
+xgboost==2.0.3
+# Shift assignment optimization (BC ESA-constrained)
+ortools==9.10.4067
+
+# Track 2 — Guest Lifecycle Integration
+# Identity resolution (guest dedup across OTA aliases)
+recordlinkage==0.16
+splink==4.0.4
+# NLP for review themes, spa notes, arrival brief generation
+sentence-transformers==2.7.0
+# Action classification
+scikit-learn==1.4.2
+
+# Track 3 — Tourism Operations
+# Fuzzy name matching for cross-dataset visitor journey join
+rapidfuzz==3.9.0
+# Guide-vessel scheduling (Transport Canada certification constraints)
+# Uses same ortools as Track 1
+# Marine weather time-series
+# Uses same prophet/xgboost as Track 1

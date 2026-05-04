@@ -1,0 +1,131 @@
+erDiagram
+    PROPERTIES ||--o{ ROOMS : "property_id"
+    PROPERTIES ||--o{ BOOKINGS : "property_id"
+    PROPERTIES ||--o{ SHIFTS : "property_id"
+    PROPERTIES ||--o{ INVENTORY_MOVEMENTS : "property_id"
+    PROPERTIES ||--o{ CHANNEL_EVENTS : "property_id"
+
+    BOOKINGS ||--o| STAYS : "booking_id"
+    ROOMS ||--o{ HOUSEKEEPING_EVENTS : "room_id"
+    STAYS ||--o{ HOUSEKEEPING_EVENTS : "stay_id"
+    ROOMS ||--o{ STAYS : "room_id"
+
+    BOOKINGS ||--o{ CHANNEL_EVENTS : "booking_id"
+
+    PROPERTIES {
+        string property_id PK
+        string property_name
+        enum property_type
+        int total_rooms
+        string address_city
+        string timezone
+    }
+
+    ROOMS {
+        string room_id PK
+        string property_id FK
+        string room_number
+        enum room_type
+        bool wheelchair_accessible
+        bool connecting_room
+        int floor
+        int max_occupancy
+    }
+
+    BOOKINGS {
+        string booking_id PK
+        string property_id FK
+        string guest_id
+        enum channel_source
+        enum rate_plan_code
+        date arrival_date
+        date departure_date
+        int lead_time_days
+        decimal adr_quoted
+        enum booking_status
+        date created_at
+        date cancelled_at
+    }
+
+    STAYS {
+        string stay_id PK
+        string booking_id FK
+        string room_id FK
+        string guest_id
+        date checkin_at
+        date checkout_at
+        int adults
+        int children
+        decimal adr_realized
+        bool early_checkin_flag
+        bool late_checkout_flag
+    }
+
+    HOUSEKEEPING_EVENTS {
+        string event_id PK
+        string room_id FK
+        string stay_id FK
+        enum event_type
+        enum status
+        date scheduled_at
+        date started_at
+        date completed_at
+        date inspected_at
+        string assigned_staff_id
+        int duration_minutes
+        string flags
+    }
+
+    SHIFTS {
+        string shift_id PK
+        string property_id FK
+        string staff_id
+        enum department
+        date scheduled_start
+        date scheduled_end
+        date actual_start
+        date actual_end
+        bool no_show_flag
+        bool swap_flag
+        string flags
+    }
+
+    CHANNEL_EVENTS {
+        string event_id PK
+        string property_id FK
+        string booking_id FK
+        enum channel
+        enum event_type
+        date event_at
+        decimal rate_change
+        bool parity_breach_flag
+        string parity_contract_type
+        string notes
+    }
+
+    INVENTORY_MOVEMENTS {
+        string movement_id PK
+        string property_id FK
+        string item_id
+        enum movement_type
+        int quantity
+        bool cold_chain_required
+        date occurred_at
+        string flags
+    }
+
+    WEATHER_DAILY {
+        date observation_date PK
+        decimal temp_high_c
+        decimal temp_low_c
+        decimal precipitation_mm
+        string conditions
+    }
+
+    EVENTS_CALENDAR {
+        string event_calendar_id PK
+        date event_date
+        string event_name
+        enum event_type
+        int expected_attendance
+    }

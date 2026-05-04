@@ -1,0 +1,59 @@
+table,field,type,description,example,nullable,is_pk,is_fk,fk_target,notes
+properties,property_id,string,Stable unique identifier for the property,PROP-001,false,true,false,,Two seeded properties: PROP-001 boutique hotel; PROP-002 event venue
+properties,property_name,string,Human-readable property display name,Harbour View Boutique,false,false,false,,Synthetic name; not a real Victoria operator
+properties,property_type,enum,Category of property,boutique_hotel,false,false,false,,Values: boutique_hotel/event_venue
+properties,total_rooms,int,Total guest rooms (null for non-lodging),60,true,false,false,,Null for event_venue
+properties,address_city,string,City of property,Victoria,false,false,false,,Always Victoria in seed data
+properties,timezone,string,IANA timezone of property operations,America/Vancouver,false,false,false,,
+rooms,room_id,string,Stable unique identifier for the room,RM-001-0312,false,true,false,,Composite of property and room number
+rooms,property_id,string,Property this room belongs to,PROP-001,false,false,true,properties.property_id,
+rooms,room_number,string,Display room number,312,false,false,false,,May not be sequential
+rooms,room_type,enum,Room type code,king_harbour,false,false,false,,Values: king_standard/king_harbour/queen_double/suite/accessible_king
+rooms,wheelchair_accessible,bool,Accessibility flag,true,false,false,false,,5 rooms in seed data
+rooms,connecting_room,bool,Has connecting door,false,false,false,false,,
+rooms,floor,int,Floor number,3,false,false,false,,
+rooms,max_occupancy,int,Maximum legal occupancy,2,false,false,false,,
+bookings,booking_id,string,Stable unique identifier for the booking,BK-2026-04-013429,false,true,false,,
+bookings,property_id,string,Property booked,PROP-001,false,false,true,properties.property_id,
+bookings,guest_id,string,Guest identifier — joins to Track 2 dataset,GST-008127,false,false,false,,Cross-track join key
+bookings,channel_source,enum,Source channel for the booking,booking_com,false,false,false,,Values: direct/phone/booking_com/expedia/airbnb/group_block/walk_in
+bookings,rate_plan_code,enum,Rate plan applied,BAR,false,false,false,,Values: BAR/AAA/CORP/PKG/GROUP/COMP
+bookings,arrival_date,date,Scheduled arrival date,2026-05-15,false,false,false,,
+bookings,departure_date,date,Scheduled departure date,2026-05-17,false,false,false,,
+bookings,lead_time_days,int,Days between booking creation and arrival,42,false,false,false,,Useful demand signal
+bookings,adr_quoted,decimal,Average daily rate at time of booking,189.00,false,false,false,,Pre-tax CAD
+bookings,booking_status,enum,Current state of the booking,confirmed,false,false,false,,Values: confirmed/cancelled/no_show/checked_in/checked_out/modified
+bookings,created_at,date,When the booking was created,2026-04-03T14:22:11,false,false,false,,
+bookings,cancelled_at,date,When the booking was cancelled (if applicable),,true,false,false,,
+housekeeping_events,event_id,string,Stable unique identifier,HK-2026-05-001293,false,true,false,,
+housekeeping_events,room_id,string,Room being cleaned,RM-001-0312,false,false,true,rooms.room_id,
+housekeeping_events,stay_id,string,Associated stay (departure cleaning) or null,STY-008441,true,false,true,stays.stay_id,Null for inspection-only events
+housekeeping_events,event_type,enum,Type of housekeeping event,checkout_clean,false,false,false,,Values: checkout_clean/stayover_clean/refresh/inspection/deep_clean/maintenance
+housekeeping_events,status,enum,Lifecycle state,completed,false,false,false,,Values: assigned/in_progress/paused/completed/inspection_pending/passed/failed
+housekeeping_events,scheduled_at,date,When the event was scheduled,2026-05-15T10:00:00,false,false,false,,
+housekeeping_events,started_at,date,When the event was started,2026-05-15T10:14:00,true,false,false,,Sometimes missing — operator forgot to tap start
+housekeeping_events,completed_at,date,When the event was completed,2026-05-15T10:43:00,true,false,false,,
+housekeeping_events,inspected_at,date,When inspection was completed,2026-05-15T10:55:00,true,false,false,,Required before sellable
+housekeeping_events,duration_minutes,int,Duration of the cleaning,29,true,false,false,,Property median is around 28 for checkout_clean
+housekeeping_events,flags,string,Anomaly flags pipe-separated,ANOMALY_LONG_CLEAN,true,false,false,,RED_FLAG_LONG_CLEAN if 3x property median
+shifts,shift_id,string,Stable unique identifier,SH-2026-05-08-029,false,true,false,,
+shifts,property_id,string,Property,PROP-001,false,false,true,properties.property_id,
+shifts,staff_id,string,Staff member,STF-014,false,false,false,,
+shifts,department,enum,Department,front_office,false,false,false,,Values: front_office/housekeeping/fb_kitchen/fb_service/maintenance/management
+shifts,scheduled_start,date,Scheduled start,2026-05-08T07:00:00,false,false,false,,
+shifts,scheduled_end,date,Scheduled end,2026-05-08T15:30:00,false,false,false,,
+shifts,actual_start,date,Actual clock-in,2026-05-08T07:04:00,true,false,false,,Null if no_show
+shifts,actual_end,date,Actual clock-out,2026-05-08T15:42:00,true,false,false,,
+shifts,no_show_flag,bool,Did not show up,false,false,false,false,,
+shifts,swap_flag,bool,Was originally a different staff member,true,false,false,false,,
+shifts,flags,string,ESA or scheduling flags pipe-separated,ESA_VIOLATION_PROJECTED,true,false,false,,Flagged when published roster violates BC ESA
+channel_events,event_id,string,Stable unique identifier,CH-2026-04-19-77433,false,true,false,,
+channel_events,property_id,string,Property,PROP-001,false,false,true,properties.property_id,
+channel_events,booking_id,string,Booking that triggered the event,BK-2026-04-013429,true,false,true,bookings.booking_id,Null for inventory pushes not tied to a booking
+channel_events,channel,enum,Distribution channel,booking_com,false,false,false,,Values: booking_com/expedia/airbnb/direct/group_block
+channel_events,event_type,enum,Event type,rate_update,false,false,false,,Values: rate_update/inventory_push/booking_received/cancellation/parity_check
+channel_events,event_at,date,When event occurred,2026-04-19T03:14:22,false,false,false,,Note OTA latency means out-of-order events
+channel_events,rate_change,decimal,Rate delta from prior value,15.00,true,false,false,,
+channel_events,parity_breach_flag,bool,Created a parity breach with another channel,true,false,false,false,,
+channel_events,parity_contract_type,string,Type of parity obligation breached,wide_parity,true,false,false,,Values: narrow_parity/wide_parity/none
+channel_events,notes,string,Free text notes including DATA_QUALITY_ISSUE flags,DATA_QUALITY_ISSUE: parity_breach,true,false,false,,

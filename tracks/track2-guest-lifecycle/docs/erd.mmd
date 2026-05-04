@@ -1,0 +1,129 @@
+erDiagram
+    GUESTS ||--o{ STAYS : "guest_id"
+    GUESTS ||--o{ FB_RECEIPTS : "guest_id"
+    GUESTS ||--o{ SPA_APPOINTMENTS : "guest_id"
+    GUESTS ||--o{ SURVEYS : "guest_id"
+    GUESTS ||--o{ REVIEWS : "guest_id"
+    GUESTS ||--o{ POST_STAY_EVENTS : "guest_id"
+    GUESTS ||--|| GUEST_PREFERENCES : "guest_id"
+
+    STAYS ||--o{ FB_RECEIPTS : "stay_id"
+    STAYS ||--o{ SPA_APPOINTMENTS : "stay_id"
+    STAYS ||--o| SURVEYS : "stay_id"
+    STAYS ||--o| REVIEWS : "stay_id"
+    STAYS ||--o{ POST_STAY_EVENTS : "stay_id"
+
+    GUESTS {
+        string guest_id PK
+        string first_name
+        string last_name
+        string email
+        string phone
+        enum tier
+        int lifetime_stay_count
+        decimal lifetime_spend
+        bool marketing_opt_in
+        string consent_scope_csv
+        date consent_updated_at
+        enum identity_preference
+        bool churn_risk_seed
+    }
+
+    GUEST_PREFERENCES {
+        string guest_id PK
+        string preferred_room_type
+        string dietary_restrictions
+        string allergens
+        string preferred_therapist_id
+        enum communication_channel
+        string special_requests
+        date last_updated_at
+    }
+
+    STAYS {
+        string stay_id PK
+        string guest_id FK
+        string booking_id
+        string property_id
+        date checkin_at
+        date checkout_at
+        decimal stay_total
+        bool was_returning_guest
+    }
+
+    FB_RECEIPTS {
+        string receipt_id PK
+        string guest_id FK
+        string stay_id FK
+        enum outlet
+        date receipt_at
+        decimal subtotal
+        string items_json
+        string allergen_flags
+    }
+
+    SPA_APPOINTMENTS {
+        string appointment_id PK
+        string guest_id FK
+        string stay_id FK
+        string therapist_id
+        enum treatment_type
+        date appointment_at
+        int duration_minutes
+        string product_notes
+        string product_sensitivity_flags
+        enum status
+        string therapist_notes
+        string flags
+    }
+
+    SURVEYS {
+        string survey_id PK
+        string guest_id FK
+        string stay_id FK
+        date sent_at
+        date responded_at
+        int nps_score
+        int satisfaction_overall
+        int satisfaction_room
+        int satisfaction_service
+        int satisfaction_fb
+        int satisfaction_spa
+        string comment_text
+        string notes
+    }
+
+    REVIEWS {
+        string review_id PK
+        string guest_id FK
+        string stay_id FK
+        enum platform
+        date posted_at
+        int rating_stars
+        int rating_max
+        string review_text
+        string theme_tags
+        enum response_status
+        date responded_at
+        string response_text
+    }
+
+    POST_STAY_EVENTS {
+        string event_id PK
+        string guest_id FK
+        string stay_id FK
+        enum event_type
+        date occurred_at
+        string campaign_id
+        bool clicked
+        bool converted
+        string conversion_booking_id
+    }
+
+    GUEST_IDENTITY_GROUNDTRUTH {
+        string pair_id PK
+        string guest_id_a FK
+        string guest_id_b FK
+        bool true_match
+        string match_reason
+    }

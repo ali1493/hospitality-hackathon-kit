@@ -1,0 +1,73 @@
+table,field,type,description,example,nullable,is_pk,is_fk,fk_target,notes
+tour_operators,operator_id,string,Stable unique identifier,TOP-001,false,true,false,,One operator in seed data
+tour_operators,operator_name,string,Display name,Salish Sea Adventures,false,false,false,,Synthetic name — not a real operator
+tour_operators,home_port,string,Primary departure location,Inner Harbour / Fisherman's Wharf,false,false,false,,Combined modeled on Prince of Whales + Eagle Wing Tours locations
+tour_operators,total_vessels,int,Fleet size,20,false,false,false,,Mix of catamarans and Zodiacs
+tour_operators,total_guides,int,Total certified guides on roster,35,false,false,false,,
+tour_operators,booking_platform,string,Primary OTA platform,Viator,false,false,false,,Confirmed: Prince of Whales uses Viator for OTA distribution
+tour_operators,viator_distributor,bool,Whether operator uses Viator as primary OTA,true,false,false,false,,Affects booking_channel distribution in tour_bookings
+vessels,vessel_id,string,Stable unique identifier,VSL-001,false,true,false,,
+vessels,operator_id,string,Operator this vessel belongs to,TOP-001,false,false,true,tour_operators.operator_id,
+vessels,vessel_name,string,Display name,Orca Chaser,false,false,false,,Synthetic name
+vessels,vessel_type,enum,Vessel category,catamaran,false,false,false,,Values: catamaran/zodiac/private_charter
+vessels,passenger_capacity,int,Maximum passenger count,45,false,false,false,,Catamarans 45-60; Zodiacs 12
+vessels,certification_class,enum,Transport Canada vessel certification class,class_a,false,false,false,,Values: class_a/class_b/class_c — determines guide certification requirements
+vessels,covered_seating,bool,Whether vessel has covered interior seating,true,false,false,false,,Affects advisory_level thresholds for departure eligibility
+vessels,last_service_date,date,Date of most recent scheduled maintenance,2026-03-15,false,false,false,,
+vessels,next_service_due,date,Next scheduled maintenance date,2026-07-15,false,false,false,,If next_service_due < departure_at → MAINTENANCE_OVERDUE flag
+tour_departures,departure_id,string,Stable unique identifier,DEP-2026-08-14-001,false,true,false,,
+tour_departures,operator_id,string,Operator,TOP-001,false,false,true,tour_operators.operator_id,
+tour_departures,vessel_id,string,Vessel assigned to this departure,VSL-003,false,false,true,vessels.vessel_id,
+tour_departures,tour_type,enum,Type of tour,whale_watching_3hr,false,false,false,,Values: whale_watching_3hr/whale_watching_2hr/private_zodiac/sunset_cruise
+tour_departures,scheduled_at,date,Scheduled departure time,2026-08-14T10:00:00,false,false,false,,
+tour_departures,actual_departure_at,date,Actual departure time,2026-08-14T10:08:00,true,false,false,,Null if cancelled or weather-hold
+tour_departures,seats_available,int,Total seats on this departure,45,false,false,false,,From vessel.passenger_capacity
+tour_departures,seats_booked,int,Confirmed bookings at departure time,38,false,false,false,,
+tour_departures,weather_cancel_flag,bool,Whether departure was cancelled due to weather,false,false,false,false,,~150 seeded as true — see ground truth
+tour_departures,advisory_level,enum,Environment Canada advisory at time of departure decision,none,false,false,false,,Values: none/small_craft/gale. Joined from weather_marine on departure_date. Gale = hard stop.
+tour_departures,flags,string,Operational flags pipe-separated,MAINTENANCE_OVERDUE,true,false,false,,Values: WEATHER_CANCEL/MAINTENANCE_OVERDUE/CERTIFICATION_MISMATCH
+tour_bookings,booking_id,string,Stable unique identifier,BK-VIA-2026-08-13-001293,false,true,false,,
+tour_bookings,departure_id,string,Departure this booking is for,DEP-2026-08-14-001,false,false,true,tour_departures.departure_id,
+tour_bookings,viator_booking_ref,string,OTA booking reference (Viator format),VTR-8847291,true,false,false,,Null for direct bookings
+tour_bookings,guest_first_name,string,Guest first name as captured,Sarah,false,false,false,,May differ from hotel stay spelling — intentional for cross-dataset join
+tour_bookings,guest_last_name,string,Guest last name as captured,Wilson,false,false,false,,
+tour_bookings,guest_email,string,Guest email,sarah.wilson@example.com,true,false,false,,OTA bookings often obfuscate email — Viator provides alias
+tour_bookings,party_size,int,Number of guests on this booking,2,false,false,false,,
+tour_bookings,booking_channel,enum,How the booking was made,viator,false,false,false,,Values: viator/direct_online/hotel_concierge/walk_up/phone
+tour_bookings,lead_time_days,int,Days between booking and departure,14,false,false,false,,Walk-up = 0. Viator advance bookings avg 21 days.
+tour_bookings,price_per_person,decimal,Price per guest in CAD,203.99,false,false,false,,Source: Viator listing Prince of Whales 3-hr tour from CA$203.99
+tour_bookings,no_show_flag,bool,Guest did not show for departure,false,false,false,false,,~60 seeded as true — see ground truth
+tour_bookings,rebooking_id,string,If rescheduled from a cancelled departure the original booking_id,,true,false,false,,Used to track rebooking chains after weather cancellations
+tour_bookings,no_show_risk_seed,string,Ground truth no-show risk label for scoring,high_risk,true,false,false,,Values: low_risk/medium_risk/high_risk. Not available at inference time.
+guide_shifts,shift_id,string,Stable unique identifier,GSH-2026-08-14-012,false,true,false,,
+guide_shifts,operator_id,string,Operator,TOP-001,false,false,true,tour_operators.operator_id,
+guide_shifts,vessel_id,string,Vessel assigned for this shift,VSL-003,false,false,true,vessels.vessel_id,
+guide_shifts,guide_id,string,Guide identifier,GDE-007,false,false,false,,
+guide_shifts,certification_type,enum,Transport Canada certification held by this guide,class_a_naturalist,false,false,false,,Values: class_a_naturalist/class_b_naturalist/class_c_operator. Must match vessel.certification_class.
+guide_shifts,scheduled_start,date,Scheduled shift start,2026-08-14T09:00:00,false,false,false,,
+guide_shifts,actual_start,date,Actual clock-in,2026-08-14T09:03:00,true,false,false,,Null if no-show
+guide_shifts,scheduled_end,date,Scheduled shift end,2026-08-14T14:00:00,false,false,false,,
+guide_shifts,actual_end,date,Actual clock-out,2026-08-14T14:22:00,true,false,false,,
+guide_shifts,no_show_flag,bool,Guide did not show for shift,false,false,false,false,,
+guide_shifts,flags,string,Compliance flags,CERTIFICATION_MISMATCH,true,false,false,,CERTIFICATION_MISMATCH flagged when guide certification < vessel requirement
+equipment_inventory,inspection_id,string,Stable unique identifier,EQ-2026-03-15-VSL003,false,true,false,,
+equipment_inventory,vessel_id,string,Vessel inspected,VSL-003,false,false,true,vessels.vessel_id,
+equipment_inventory,safety_gear_type,enum,Type of safety gear inspected,life_jackets,false,false,false,,Values: life_jackets/flares/fire_extinguisher/first_aid_kit/epirb/raft
+equipment_inventory,inspection_date,date,Date of inspection,2026-03-15,false,false,false,,
+equipment_inventory,passed,bool,Whether inspection passed,true,false,false,false,,
+equipment_inventory,next_service_due,date,Date next service is required,2026-07-15,false,false,false,,If next_service_due < tour_departures.scheduled_at → MAINTENANCE_OVERDUE
+equipment_inventory,flags,string,Maintenance flags,MAINTENANCE_OVERDUE,true,false,false,,MAINTENANCE_OVERDUE if service is overdue at departure date
+weather_marine,observation_date,date,Date of observation,2026-08-14,false,true,false,,One record per calendar day — joined to tour_departures on departure_date
+weather_marine,swell_height_m,decimal,Wave/swell height in metres,0.8,false,false,false,,< 1.0m = favourable; 1.0–1.5m = caution; > 1.5m = small craft advisory typical
+weather_marine,wind_speed_knts,decimal,Wind speed in knots,12.0,false,false,false,,< 15 knts = favourable; 15–25 = caution; > 25 = small craft advisory typical
+weather_marine,visibility_km,decimal,Visibility in kilometres,15.0,false,false,false,,< 2.0km = advisory likely
+weather_marine,sea_state,enum,Overall sea state classification,slight,false,false,false,,Values: calm/slight/moderate/rough/very_rough. Schema shape from Environment Canada marine forecast.
+weather_marine,advisory_level,enum,Environment Canada advisory level for Salish Sea / Juan de Fuca,none,false,false,false,,Values: none/small_craft/gale. Gale = hard stop regardless of booking load. Source: weather.gc.ca/marine
+weather_marine,advisory_area,string,Specific marine advisory area,Juan de Fuca Strait,true,false,false,,
+cross_dataset_groundtruth,pair_id,string,Stable unique identifier,XDG-0001,false,true,false,,
+cross_dataset_groundtruth,tour_booking_id,string,Tour booking in the candidate pair,BK-VIA-2026-08-13-001293,false,false,true,tour_bookings.booking_id,
+cross_dataset_groundtruth,hotel_stay_id,string,Hotel stay in the candidate pair (Track 1/Track 2),STY-008441,false,false,false,,Links to Track 1 stays.stay_id and Track 2 stays.stay_id — same value
+cross_dataset_groundtruth,true_match,bool,Whether this is a confirmed true match (ground truth label),true,false,false,false,,~60 true matches; ~340 false positive candidates for precision testing
+cross_dataset_groundtruth,name_similarity_score,decimal,Fuzzy name similarity between booking and stay (pre-computed),0.87,false,false,false,,Jaro-Winkler score on (first_name + last_name). Not the label — use as a feature.
+cross_dataset_groundtruth,date_proximity_days,int,Absolute day difference between tour departure and hotel check-in,0,false,false,false,,0 = same day; 1–2 = nearby. Pairs with date_proximity > 2 are likely false positives.
+cross_dataset_groundtruth,match_reason,string,Why this pair is a true match (for true_match=true only),same_guest_same_day_viator_and_booking_com,true,false,false,,Null for false positives
